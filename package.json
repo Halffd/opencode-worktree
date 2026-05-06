@@ -1,0 +1,16 @@
+{
+  "name": "opencode-worktree",
+  "version": "2.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    "./server": {
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.14.18",
+    "zod": "^3.23.0",
+    "jsonc-parser": "^3.3.1"
+  }
+}
