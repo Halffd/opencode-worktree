@@ -5,9 +5,9 @@ Manages git worktrees for isolated parallel development, allowing the AI agent t
 ## Features
 
 - **Create git worktrees** on new or existing branches
-- **Multiple launch modes** — tmux window, tmux session, desktop terminal (kitty/alacritty/ghostty/gnome-terminal/konsole/xterm), or VS Code
-- **Session forking** — copies plan.md and delegations into the new worktree
-- **Automatic cleanup** — on session idle, pending-deletes trigger `git add -A && git commit && git worktree remove`
+- **Multiple launch modes** - tmux window, tmux session, desktop terminal (kitty/alacritty/ghostty/gnome-terminal/konsole/xterm), or VS Code
+- **Session forking** - copies plan.md and delegations into the new worktree
+- **Automatic cleanup** - on session idle, pending-deletes trigger `git add -A && git commit && git worktree remove`
 - **File sync** between main repo and worktrees (copy files, symlink directories)
 - **Merge, rebase, cherry-pick, squash** operations within worktrees
 - **Conflict resolution** tools (list conflicts, checkout --theirs/--ours, detailed conflict status)
@@ -16,7 +16,7 @@ Manages git worktrees for isolated parallel development, allowing the AI agent t
 
 ## Installation
 
-Add the plugin to your `opencode.json`:
+In `opencode.json`:
 
 **From GitHub:**
 
