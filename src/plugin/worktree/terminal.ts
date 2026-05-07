@@ -738,7 +738,7 @@ export async function openMacOSTerminal(cwd: string, argv?: string[]): Promise<T
 			}
 
 			// iTerm uses AppleScript `write text` which returns before execution completes.
-			// Script must self-delete via trap — withTempScript would race.
+			// Script must self-delete via trap - withTempScript would race.
 			case "iterm": {
 				detachedScriptPath = path.join(
 					getTempDir(),

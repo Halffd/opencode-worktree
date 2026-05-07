@@ -1785,7 +1785,7 @@ export default async function (ctx: {
           const lines = sessions.map((s, i) => {
             const age = Date.now() - new Date(s.createdAt).getTime()
             const ageStr = age < 60000 ? `${Math.floor(age / 1000)}s ago` : age < 3600000 ? `${Math.floor(age / 60000)}m ago` : `${Math.floor(age / 3600000)}h ago`
-            return `${i + 1}. ${s.branch} — ${s.path} (${ageStr}) [${s.launchMode}]`
+            return `${i + 1}. ${s.branch} - ${s.path} (${ageStr}) [${s.launchMode}]`
           })
 
           return `Active worktrees (${sessions.length}):\n${lines.join("\n")}`
@@ -2038,18 +2038,18 @@ export default async function (ctx: {
           for (const file of files) {
             const checkoutResult = await git(["checkout", "--theirs", file], cwd)
             if (!checkoutResult.ok) {
-              results.push(`  FAILED: ${file} — ${checkoutResult.error}`)
+              results.push(`  FAILED: ${file} - ${checkoutResult.error}`)
               continue
             }
             const addResult = await git(["add", file], cwd)
             if (!addResult.ok) {
-              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file} — ${addResult.error}`)
+              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file} - ${addResult.error}`)
             } else {
               results.push(`  RESOLVED (theirs): ${file}`)
             }
           }
 
-          return `Accept theirs — ${files.length} file(s):\n${results.join("\n")}`
+          return `Accept theirs - ${files.length} file(s):\n${results.join("\n")}`
         },
       }),
 
@@ -2085,18 +2085,18 @@ export default async function (ctx: {
           for (const file of files) {
             const checkoutResult = await git(["checkout", "--ours", file], cwd)
             if (!checkoutResult.ok) {
-              results.push(`  FAILED: ${file} — ${checkoutResult.error}`)
+              results.push(`  FAILED: ${file} - ${checkoutResult.error}`)
               continue
             }
             const addResult = await git(["add", file], cwd)
             if (!addResult.ok) {
-              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file} — ${addResult.error}`)
+              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file} - ${addResult.error}`)
             } else {
               results.push(`  RESOLVED (ours): ${file}`)
             }
           }
 
-          return `Accept ours — ${files.length} file(s):\n${results.join("\n")}`
+          return `Accept ours - ${files.length} file(s):\n${results.join("\n")}`
         },
       }),
 
@@ -2137,7 +2137,7 @@ export default async function (ctx: {
             else if (x === 65 && y === 65) description = "both added"
             else description = `status ${statusCode}`
 
-            return `  ${filePath} — ${description}`
+            return `  ${filePath} - ${description}`
           })
 
 return `Conflict status (${conflicted.length} file(s)):\n${details.join("\n")}`
