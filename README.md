@@ -18,7 +18,17 @@ Manages git worktrees for isolated parallel development, allowing the AI agent t
 
 In `opencode.json`:
 
-**From GitHub:**
+**npm/bun:**
+
+```json
+{
+  "plugin": [
+    "@Halffd/opencode-worktree"
+  ]
+}
+```
+
+**GitHub:**
 
 ```json
 {
@@ -28,7 +38,7 @@ In `opencode.json`:
 }
 ```
 
-**From local path:**
+**Local:**
 
 ```json
 {
