@@ -18210,8 +18210,14 @@ async function src_default(ctx) {
     error: (msg) => client.app.log({ body: { service: "worktree", level: "error", message: msg } }).catch(() => {})
   };
   const database = await initDb(directory, log);
+  const worktreeCommands = {
+    worktree: { template: "$ARGUMENTS", description: "Git worktree management. Subcommands: create, list, prune, delete, shared-sync, shared-list, build-dir, merge, rebase, cherry-pick, squash, abort, conflicts, checkout-theirs, checkout-ours, conflict-status" }
+  };
   return {
     id: "opencode-worktree",
+    config: async (inputConfig) => {
+      inputConfig.command = { ...inputConfig.command, ...worktreeCommands };
+    },
     tool: {
       worktree_create: tool({
         description: "Create a new git worktree for isolated development. A new terminal will open with OpenCode in the worktree.",
@@ -18325,7 +18331,7 @@ A new ${launchMode === "tmux-window" ? "tmux window" : launchMode === "tmux-sess
           const lines = sessions.map((s, i) => {
             const age = Date.now() - new Date(s.createdAt).getTime();
             const ageStr = age < 60000 ? `${Math.floor(age / 1000)}s ago` : age < 3600000 ? `${Math.floor(age / 60000)}m ago` : `${Math.floor(age / 3600000)}h ago`;
-            return `${i + 1}. ${s.branch} \u2014 ${s.path} (${ageStr}) [${s.launchMode}]`;
+            return `${i + 1}. ${s.branch} - ${s.path} (${ageStr}) [${s.launchMode}]`;
           });
           return `Active worktrees (${sessions.length}):
 ${lines.join(`
@@ -18529,17 +18535,17 @@ ${files.map((f, i) => `${i + 1}. ${f}`).join(`
           for (const file2 of files) {
             const checkoutResult = await git(["checkout", "--theirs", file2], cwd);
             if (!checkoutResult.ok) {
-              results.push(`  FAILED: ${file2} \u2014 ${checkoutResult.error}`);
+              results.push(`  FAILED: ${file2} - ${checkoutResult.error}`);
               continue;
             }
             const addResult = await git(["add", file2], cwd);
             if (!addResult.ok) {
-              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file2} \u2014 ${addResult.error}`);
+              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file2} - ${addResult.error}`);
             } else {
               results.push(`  RESOLVED (theirs): ${file2}`);
             }
           }
-          return `Accept theirs \u2014 ${files.length} file(s):
+          return `Accept theirs - ${files.length} file(s):
 ${results.join(`
 `)}`;
         }
@@ -18570,17 +18576,17 @@ ${results.join(`
           for (const file2 of files) {
             const checkoutResult = await git(["checkout", "--ours", file2], cwd);
             if (!checkoutResult.ok) {
-              results.push(`  FAILED: ${file2} \u2014 ${checkoutResult.error}`);
+              results.push(`  FAILED: ${file2} - ${checkoutResult.error}`);
               continue;
             }
             const addResult = await git(["add", file2], cwd);
             if (!addResult.ok) {
-              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file2} \u2014 ${addResult.error}`);
+              results.push(`  CHECKOUT OK BUT ADD FAILED: ${file2} - ${addResult.error}`);
             } else {
               results.push(`  RESOLVED (ours): ${file2}`);
             }
           }
-          return `Accept ours \u2014 ${files.length} file(s):
+          return `Accept ours - ${files.length} file(s):
 ${results.join(`
 `)}`;
         }
@@ -18623,7 +18629,7 @@ ${results.join(`
               description = "both added";
             else
               description = `status ${statusCode}`;
-            return `  ${filePath} \u2014 ${description}`;
+            return `  ${filePath} - ${description}`;
           });
           return `Conflict status (${conflicted.length} file(s)):
 ${details.join(`
@@ -18755,6 +18761,39 @@ Config: ${path.join(directory, ".opencode", "worktree.jsonc")}`);
 `);
         }
       })
+    },
+    "command.execute.before": async (input, output) => {
+      const cmd = input.command.replace(/^\//, "").toLowerCase();
+      if (cmd !== "worktree")
+        return;
+      const args = input.arguments ?? "";
+      const parts = args.trim().split(/\s+/);
+      const subcommand = parts[0]?.toLowerCase() ?? "";
+      const toolMap = {
+        create: "worktree_create",
+        list: "worktree_list",
+        prune: "worktree_prune",
+        delete: "worktree_delete",
+        "shared-sync": "worktree_shared_sync",
+        "shared-list": "worktree_shared_list",
+        "build-dir": "worktree_build_dir",
+        merge: "worktree_merge",
+        rebase: "worktree_rebase",
+        "cherry-pick": "worktree_cherry_pick",
+        squash: "worktree_squash",
+        abort: "worktree_abort",
+        conflicts: "worktree_conflicts",
+        "checkout-theirs": "worktree_checkout_theirs",
+        "checkout-ours": "worktree_checkout_ours",
+        "conflict-status": "worktree_conflict_status"
+      };
+      const toolName = toolMap[subcommand];
+      if (!toolName) {
+        output.parts = [{ type: "text", text: `Unknown worktree subcommand: "${subcommand}". Available: ${Object.keys(toolMap).join(", ")}` }];
+        return;
+      }
+      const rest = parts.slice(1).join(" ");
+      output.parts = [{ type: "text", text: `Use the ${toolName} tool${rest ? ` with: ${rest}` : ""}` }];
     },
     event: async ({ event }) => {
       if (event.type !== "session.idle")

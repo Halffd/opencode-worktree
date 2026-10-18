@@ -1617,8 +1617,16 @@ export default async function (ctx: {
 
   const database = await initDb(directory, log)
 
+  const worktreeCommands: Record<string, { template: string; description: string }> = {
+    "worktree": { template: "$ARGUMENTS", description: "Git worktree management. Subcommands: create, list, prune, delete, shared-sync, shared-list, build-dir, merge, rebase, cherry-pick, squash, abort, conflicts, checkout-theirs, checkout-ours, conflict-status" },
+  };
+
   return {
     id: "opencode-worktree",
+
+    config: async (inputConfig: any) => {
+      inputConfig.command = { ...inputConfig.command, ...worktreeCommands };
+    },
 
     tool: {
       worktree_create: tool({
@@ -2279,7 +2287,47 @@ return `Conflict status (${conflicted.length} file(s)):\n${details.join("\n")}`
     }),
     },
 
-  event: async ({ event }: { event: Event }): Promise<void> => {
+    "command.execute.before": async (
+      input: { command: string; sessionID: string; arguments: string },
+      output: { parts: any[] },
+    ) => {
+      const cmd = input.command.replace(/^\//, "").toLowerCase()
+      if (cmd !== "worktree") return
+
+      const args = input.arguments ?? ""
+      const parts = args.trim().split(/\s+/)
+      const subcommand = parts[0]?.toLowerCase() ?? ""
+
+      const toolMap: Record<string, string> = {
+        create: "worktree_create",
+        list: "worktree_list",
+        prune: "worktree_prune",
+        delete: "worktree_delete",
+        "shared-sync": "worktree_shared_sync",
+        "shared-list": "worktree_shared_list",
+        "build-dir": "worktree_build_dir",
+        merge: "worktree_merge",
+        rebase: "worktree_rebase",
+        "cherry-pick": "worktree_cherry_pick",
+        squash: "worktree_squash",
+        abort: "worktree_abort",
+        conflicts: "worktree_conflicts",
+        "checkout-theirs": "worktree_checkout_theirs",
+        "checkout-ours": "worktree_checkout_ours",
+        "conflict-status": "worktree_conflict_status",
+      }
+
+      const toolName = toolMap[subcommand]
+      if (!toolName) {
+        output.parts = [{ type: "text", text: `Unknown worktree subcommand: "${subcommand}". Available: ${Object.keys(toolMap).join(", ")}` }]
+        return
+      }
+
+      const rest = parts.slice(1).join(" ")
+      output.parts = [{ type: "text", text: `Use the ${toolName} tool${rest ? ` with: ${rest}` : ""}` }]
+    },
+
+    event: async ({ event }: { event: Event }): Promise<void> => {
       if (event.type !== "session.idle") return
 
       const pendingDelete = getPendingDelete(database)

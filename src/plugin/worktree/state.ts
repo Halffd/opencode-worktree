@@ -156,8 +156,11 @@ export async function initStateDb(projectRoot: string): Promise<Database> {
 	const db = new Database(dbPath)
 
 	// Configure SQLite for concurrent access
-	db.exec("PRAGMA journal_mode=WAL")
-	db.exec("PRAGMA busy_timeout=5000")
+  db.exec("PRAGMA journal_mode=WAL")
+  db.exec("PRAGMA synchronous=NORMAL")
+  db.exec("PRAGMA busy_timeout=5000")
+  db.exec("PRAGMA cache_size=-64000")
+  db.exec("PRAGMA foreign_keys=ON")
 
 	// Create tables with schema
 	db.exec(`
